@@ -210,7 +210,7 @@ public abstract class ActionCommand implements CommandProvider {
 				ci.println(e.getMessage());
 			}
 			if (e instanceof IllegalArgumentException) {
-				String help = Messages.ActionCommand_ForHelpEnter + ':' + command + " -help"; //$NON-NLS-1$
+				String help = Messages.ActionCommand_ForHelpEnter + ": " + command + " -help"; //$NON-NLS-1$ //$NON-NLS-2$
 				if (action != null) {
 					help += ' ' + actionName;
 				}
@@ -301,7 +301,7 @@ public abstract class ActionCommand implements CommandProvider {
 		try {
 			final ServiceReference reference = getCommandActionRef(command, action);
 			if (null == reference) {
-				sb.append(Messages.ActionCommand_UnknownAction + ':' + action
+				sb.append(Messages.ActionCommand_UnknownAction + ": " + action //$NON-NLS-1$
 						+ "\n" + suggestSimilarActions(command, action)); //$NON-NLS-1$
 				return sb.toString();
 			}
@@ -334,8 +334,8 @@ public abstract class ActionCommand implements CommandProvider {
 				}
 				String args = localize(bundle, command, actions, "args", null); //$NON-NLS-1$
 				if (args != null) {
-					args = args.replace("\n", "\n\t  "); //$NON-NLS-1$//$NON-NLS-2$
-					sb.append("  "); //$NON-NLS-1$
+					args = args.replace("\n", "\n  "); //$NON-NLS-1$//$NON-NLS-2$
+					sb.append("\t  "); //$NON-NLS-1$
 					sb.append(args);
 					sb.append('\n');
 				}
