@@ -3,19 +3,19 @@
    <description name="CopyTo Extensions" url="http://pke.github.com/eclipse_helpers">
       CopyTo Extensions for the Eclipse Workbench. Basically adds &quot;Pastebin&quot; support into Eclipse editors and views.
    </description>
-   <feature url="features/eclipseutils.ui.copyto.feature_0.1.0.qualifier.jar" id="eclipseutils.ui.copyto.feature" version="0.1.0.qualifier">
+   <feature url="features/eclipseutils.ui.copyto.feature_0.1.0.201002041846.jar" id="eclipseutils.ui.copyto.feature" version="0.1.0.201002041846">
       <category name="core"/>
    </feature>
-   <feature url="features/eclipseutils.ui.copyto.codepad.feature_0.1.0.qualifier.jar" id="eclipseutils.ui.copyto.codepad.feature" version="0.1.0.qualifier">
+   <feature url="features/eclipseutils.ui.copyto.codepad.feature_0.1.0.201002041846.jar" id="eclipseutils.ui.copyto.codepad.feature" version="0.1.0.201002041846">
       <category name="support"/>
    </feature>
-   <feature url="features/eclipseutils.ui.copyto.from.jdt.feature_0.1.0.qualifier.jar" id="eclipseutils.ui.copyto.from.jdt.feature" version="0.1.0.qualifier">
+   <feature url="features/eclipseutils.ui.copyto.from.jdt.feature_0.1.0.201002041846.jar" id="eclipseutils.ui.copyto.from.jdt.feature" version="0.1.0.201002041846">
       <category name="core"/>
    </feature>
-   <feature url="features/eclipseutils.ui.copyto.to.pastebin.ca.feature_0.1.0.qualifier.jar" id="eclipseutils.ui.copyto.to.pastebin.ca.feature" version="0.1.0.qualifier">
+   <feature url="features/eclipseutils.ui.copyto.to.pastebin.ca.feature_0.1.0.201002041846.jar" id="eclipseutils.ui.copyto.to.pastebin.ca.feature" version="0.1.0.201002041846">
       <category name="support"/>
    </feature>
-   <feature url="features/eclipseutils.ui.copyto.to.pastebin.com.feature_0.1.0.qualifier.jar" id="eclipseutils.ui.copyto.to.pastebin.com.feature" version="0.1.0.qualifier">
+   <feature url="features/eclipseutils.ui.copyto.to.pastebin.com.feature_0.1.0.201002041846.jar" id="eclipseutils.ui.copyto.to.pastebin.com.feature" version="0.1.0.201002041846">
       <category name="support"/>
    </feature>
    <category-def name="core" label="Core Components"/>
