@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.eclipse.osgi.framework.console.action.example.filecommand">
-   <implementation class="org.eclipse.osgi.framework.console.action.example.FileCommand"/>
-   <service>
-      <provide interface="org.eclipse.osgi.framework.console.CommandProvider"/>
-   </service>
-   <reference cardinality="1..n" interface="org.eclipse.osgi.framework.console.action.CommandAction" name="CommandAction" policy="static" target="(command=file)"/>
-</scr:component>

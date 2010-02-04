@@ -1,4 +1,0 @@
-
-h1. Eclipse Equinox Console Command Actions
-
-This contains the source code for the blog entry at 
