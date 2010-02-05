@@ -16,6 +16,7 @@ Import-Package: eclipseutils.ui.copyto,
  org.eclipse.jface.text,
  org.eclipse.jface.text.source,
  org.eclipse.swt.graphics,
+ org.eclipse.swt.widgets,
  org.eclipse.ui;ui.workbench=split,
  org.eclipse.ui.part,
  org.eclipse.ui.texteditor

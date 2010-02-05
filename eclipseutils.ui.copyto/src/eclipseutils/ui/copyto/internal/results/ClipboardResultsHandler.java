@@ -35,20 +35,20 @@ import eclipseutils.ui.copyto.api.ResultsHandler;
 
 public class ClipboardResultsHandler implements ResultsHandler {
 
-	public static final String CLIPBOARD_CONFIRM_OVERWRITE = "clipboard.confirmOverwrite";
+	public static final String CLIPBOARD_CONFIRM_OVERWRITE = "clipboard.alwaysOverwrite";
 
 	public void handleResults(Results results, IShellProvider shellProvider) {
 		final IPreferenceStore prefs = new ScopedPreferenceStore(
 				new InstanceScope(), FrameworkUtil.getBundle(getClass())
 						.getSymbolicName());
-		boolean confirmOverwrite = prefs
-				.getBoolean(CLIPBOARD_CONFIRM_OVERWRITE);
+		boolean overwrite = MessageDialogWithToggle.ALWAYS.equals(prefs
+				.getString(CLIPBOARD_CONFIRM_OVERWRITE));
 
 		final String joinedURLs = joinURLs(results.getSuccesses());
 		if (joinedURLs.length() > 0) {
 			final Clipboard clipboard = new Clipboard(Display.getDefault());
 			try {
-				if (confirmOverwrite) {
+				if (!overwrite) {
 					TransferData[] availableTypes = clipboard
 							.getAvailableTypes();
 					if (availableTypes.length > 0) {
@@ -56,11 +56,14 @@ public class ClipboardResultsHandler implements ResultsHandler {
 								.openYesNoQuestion(
 										shellProvider.getShell(),
 										"Confirm overwriting of clipboard content",
-										"The clipboard is not empty. Do you want to replace its content?",
-										"Always", false, prefs,
-										CLIPBOARD_CONFIRM_OVERWRITE);
-						if (IDialogConstants.YES_ID != dialog.open()) {
+										"The clipboard is not empty.\nDo you want to replace its content?",
+										"Always", false, null, null);
+						if (IDialogConstants.YES_ID != dialog.getReturnCode()) {
 							return;
+						}
+						if (dialog.getToggleState()) {
+							prefs.putValue(CLIPBOARD_CONFIRM_OVERWRITE,
+									MessageDialogWithToggle.ALWAYS);
 						}
 					}
 				}

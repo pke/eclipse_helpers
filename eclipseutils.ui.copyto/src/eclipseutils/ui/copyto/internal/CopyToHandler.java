@@ -33,8 +33,11 @@ import org.eclipse.core.databinding.property.map.IMapProperty;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdapterManager;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ITypeRoot;
@@ -57,8 +60,8 @@ import org.eclipse.jdt.core.dom.TypeParameter;
 import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.SharedASTProvider;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.databinding.swt.SWTObservables;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -69,8 +72,6 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.window.IShellProvider;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Button;
@@ -81,8 +82,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
+import org.eclipse.ui.progress.IProgressConstants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -329,112 +332,138 @@ public class CopyToHandler extends AbstractHandler {
 	 * progress
 	 */
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
+		final ISelection selection[] = { HandlerUtil
+				.getActiveMenuSelection(event) };
+		if (selection[0] == null) {
+			selection[0] = HandlerUtil.getCurrentSelectionChecked(event);
+		}
+
+		if (selection[0].isEmpty()) {
+			return null;
+		}
+
 		final IPreferenceStore prefs = new ScopedPreferenceStore(
 				new InstanceScope(), FrameworkUtil.getBundle(getClass())
 						.getSymbolicName());
 		final IEditorPart editor = HandlerUtil.getActiveEditor(event);
-		IShellProvider shellProvider = HandlerUtil
+		final IWorkbenchWindow workbenchWindow = HandlerUtil
 				.getActiveWorkbenchWindowChecked(event);
-		ISelection selection = HandlerUtil.getActiveMenuSelection(event);
-		if (selection == null) {
-			selection = HandlerUtil.getCurrentSelectionChecked(event);
-		}
 
-		final EventHttpCopyHandler target = new EventHttpCopyHandler(event);
+		final Results results[] = { null };
 
-		final Object trigger = event.getTrigger();
-		if (trigger instanceof Event) {
-			final Event triggerEvent = (Event) trigger;
-			final int modifier = triggerEvent.stateMask & SWT.MODIFIER_MASK;
-			if ((modifier & SWT.CTRL) == SWT.CTRL) {
-				final Dialog dialog = new RequestParamsDialog(shellProvider
-						.getShell(), target);
-				if (dialog.open() != Window.OK) {
-					return null;
+		Job job = new Job("Gathering copyable items") {
+
+			final List<Result> successes = new ArrayList<Result>();
+			final List<Result> failures = new ArrayList<Result>();
+
+			@Override
+			public IStatus run(IProgressMonitor monitor) {
+				monitor.beginTask(
+						"Gathering copyable information from selection",
+						IProgressMonitor.UNKNOWN);
+
+				final Map<String, Copyable> items = new HashMap<String, Copyable>();
+
+				if (selection[0] instanceof IStructuredSelection) {
+					final IStructuredSelection ss = (IStructuredSelection) selection[0];
+					final Iterator<?> it = ss.iterator();
+					while (it.hasNext()) {
+						final Object item = it.next();
+
+						Copyable copyable = (Copyable) adapterManager
+								.loadAdapter(item, Copyable.class.getName());
+						if (copyable == null) {
+							final IResource resource = (IResource) adapterManager
+									.loadAdapter(item, IResource.class
+											.getName());
+							if (resource != null) {
+								copyable = (Copyable) adapterManager
+										.loadAdapter(resource, Copyable.class
+												.getName());
+							}
+						}
+
+						if (copyable != null) {
+							items.put(copyable.getMimeType(), copyable);
+						}
+					}
+				} else if (selection[0] instanceof ITextSelection) {
+					ITextSelection textSelection = (ITextSelection) selection[0];
+					Copyable copyable = (Copyable) adapterManager.loadAdapter(
+							editor, Copyable.class.getName());
+					if (null == copyable) {
+						copyable = new TextSelectionCopyable(textSelection);
+					}
+					items.put(copyable.getMimeType(), copyable);
 				}
-			}
-		}
 
-		final List<Result> successes = new ArrayList<Result>();
-		final List<Result> failures = new ArrayList<Result>();
+				monitor.beginTask("Copying...", items.size());
+				boolean showDialog = showDialog(event.getTrigger());
+				final EventHttpCopyHandler target = new EventHttpCopyHandler(
+						event);
 
-		if (selection instanceof IStructuredSelection) {
-			final IStructuredSelection ss = (IStructuredSelection) selection;
-			final Iterator<?> it = ss.iterator();
-			while (it.hasNext()) {
-				final Object item = it.next();
-
-				Copyable copyable = (Copyable) this.adapterManager.loadAdapter(
-						item, Copyable.class.getName());
-				if (copyable == null) {
-					final IResource resource = (IResource) this.adapterManager
-							.loadAdapter(item, IResource.class.getName());
-					copyable = (Copyable) this.adapterManager.loadAdapter(
-							resource, Copyable.class.getName());
-				}
-
-				if (copyable != null) {
-					final Result result = target.copy(copyable,
-							new NullProgressMonitor());
+				for (Entry<String, Copyable> item : items.entrySet()) {
+					final Result result = target.copy(item.getValue(), monitor);
 					if (result.getStatus().isOK()
 							&& result.getLocation() != null) {
 						successes.add(result);
 					} else {
 						failures.add(result);
 					}
-				}
-			}
-		} else if (selection instanceof ITextSelection) {
-			Copyable copyable = (Copyable) this.adapterManager.loadAdapter(
-					editor, Copyable.class.getName());
-			if (null == copyable) {
-				copyable = new TextSelectionCopyable(selection);
-			}
-			if (copyable != null) {
-				final Result result = target.copy(copyable,
-						new NullProgressMonitor());
-				if (result.getStatus().isOK() && result.getLocation() != null) {
-					successes.add(result);
-				} else {
-					failures.add(result);
-				}
-			}
-		}
-		if (!successes.isEmpty() || !failures.isEmpty()) {
-			Results results = new Results() {
-
-				public Collection<Result> getFailures() {
-					return failures;
+					monitor.worked(1);
 				}
 
-				public Collection<Result> getSuccesses() {
-					return successes;
-				}
+				if (!successes.isEmpty() || !failures.isEmpty()) {
+					results[0] = new Results() {
 
-			};
-			Object[] services = resultsHandlerTracker.getServices();
-			if (services != null) {
-				for (Object service : services) {
-					try {
-						((ResultsHandler) service).handleResults(results,
-								shellProvider);
-					} catch (Throwable t) {
+						public Collection<Result> getFailures() {
+							return failures;
+						}
+
+						public Collection<Result> getSuccesses() {
+							return successes;
+						}
+
+					};
+					Object[] services = resultsHandlerTracker.getServices();
+					if (services != null) {
+						for (Object service : services) {
+							try {
+								((ResultsHandler) service).handleResults(
+										results[0], workbenchWindow);
+							} catch (Throwable t) {
+							}
+						}
 					}
 				}
+				monitor.done();
+
+				return Status.OK_STATUS;
 			}
-			new ClipboardResultsHandler().handleResults(results, shellProvider);
-			/*
-			 * if (prefs.getBoolean("config.copyToClipboard")) { final
-			 * MessageDialogWithToggle dialog =
-			 * MessageDialogWithToggle.openYesNoQuestion(activeShell,
-			 * "CopyTo ...clipboard",
-			 * "Do you want to copy the locations {} to the clipboard?",
-			 * "Always. Do not ask again", false, prefs,
-			 * "config.copyToClipboard"); if (dialog.open() != 0) { new
-			 * ClipboardResultsHandler().handleResults(results); } }
-			 */
-		}
+		};
+		job.setProperty(IProgressConstants.KEEP_PROPERTY, true);
+		job.setProperty(IProgressConstants.NO_IMMEDIATE_ERROR_PROMPT_PROPERTY,
+				true);
+		job.setProperty(IProgressConstants.ACTION_PROPERTY, new Action(
+				"Copy to clipboard") {
+			@Override
+			public void run() {
+				new ClipboardResultsHandler().handleResults(results[0],
+						workbenchWindow);
+			}
+		});
+		job.schedule();
+
 		return null;
+	}
+
+	private boolean showDialog(Object trigger) {
+		if (trigger instanceof Event) {
+			final Event triggerEvent = (Event) trigger;
+			final int modifier = triggerEvent.stateMask & SWT.MODIFIER_MASK;
+			return ((modifier & SWT.CTRL) == SWT.CTRL);
+		}
+		return false;
 	}
 
 	private IJavaElement getSelectedElement(final IEditorPart editor,

@@ -19,13 +19,14 @@ abstract class ASTNodeCopyable implements Copyable {
 
 	protected ASTNode getNode() {
 		if (this.node == null) {
-			this.node = createNode();
+			this.node = normalize(createNode());
 		}
 		return this.node;
 	}
 
-	protected static ASTNode normalize(final ASTNode node) {
-		if (node instanceof Name || node instanceof Block || node instanceof PrimitiveType || node instanceof Modifier
+	private static ASTNode normalize(final ASTNode node) {
+		if (node instanceof Name || node instanceof Block
+				|| node instanceof PrimitiveType || node instanceof Modifier
 				|| node instanceof PackageDeclaration) {
 			return normalize(node.getParent());
 		}
