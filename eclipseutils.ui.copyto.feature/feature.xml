@@ -17,6 +17,22 @@
       [Enter License Description here.]
    </license>
 
+   <includes
+         id="eclipseutils.ui.copyto.codepad.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="eclipseutils.ui.copyto.from.jdt.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="eclipseutils.ui.copyto.to.pastebin.ca.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="eclipseutils.ui.copyto.to.pastebin.com.feature"
+         version="0.0.0"/>
+
    <requires>
       <import plugin="org.apache.commons.httpclient"/>
       <import plugin="org.eclipse.core.commands"/>

@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2010 Philipp Kursawe.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *   Philipp Kursawe (phil.kursawe@gmail.com) - initial API and implementation
+ ******************************************************************************/
 package eclipseutils.ui.copyto.internal;
 
 import java.net.URL;
@@ -15,7 +25,8 @@ class ResultImpl implements Result {
 	private final IStatus status;
 	private final long timestamp;
 
-	public ResultImpl(final Copyable copyable, final URL location, final IStatus status) {
+	public ResultImpl(final Copyable copyable, final URL location,
+			final IStatus status) {
 		this.copyable = copyable;
 		this.location = location;
 		this.status = status;
@@ -27,7 +38,8 @@ class ResultImpl implements Result {
 	}
 
 	public ResultImpl(final Copyable copyable, final Throwable throwable) {
-		this(copyable, null, new Status(IStatus.ERROR, HttpCopyToHandler.symbolicName, "Failed to copy", throwable));
+		this(copyable, null, new Status(IStatus.ERROR,
+				HttpCopyToHandler.symbolicName, "Failed to copy", throwable));
 	}
 
 	public String getTargetName() {

@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2010 Philipp Kursawe.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *   Philipp Kursawe (phil.kursawe@gmail.com) - initial API and implementation
+ ******************************************************************************/
 package eclipseutils.ui.copyto.internal;
 
 import java.util.Map;
@@ -15,9 +25,12 @@ import eclipseutils.ui.copyto.api.Result;
  */
 public interface Handler {
 	/**
-	 * @param text contained in the item
-	 * @param item the text was generated from
-	 * @param monitor to report progress on the copying of the text
+	 * @param text
+	 *            contained in the item
+	 * @param item
+	 *            the text was generated from
+	 * @param monitor
+	 *            to report progress on the copying of the text
 	 * @return
 	 * @throws Exception
 	 */
@@ -26,7 +39,7 @@ public interface Handler {
 	/**
 	 * @return the declared params
 	 */
-	Map getParams();
+	Map<String, String> getParams();
 
 	String getId();
 }

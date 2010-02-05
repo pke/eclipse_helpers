@@ -73,16 +73,6 @@
       </initializer>
    </extension>   
    <extension
-         id="eclipseutils.ui.copyto.pastebin.ca"
-         point="eclipseutils.ui.copyto.targets">
-      <paramInfos
-            hidden="apikey,content">
-      </paramInfos>
-      <responseHandler
-            class="eclipseutils.ui.copyto.internal.responses.JsonResponseHandler">
-      </responseHandler>
-   </extension>
-   <extension
          point="org.eclipse.core.runtime.adapters">
       <factory
             adaptableType="eclipseutils.ui.copyto.api.json.MapResponse"

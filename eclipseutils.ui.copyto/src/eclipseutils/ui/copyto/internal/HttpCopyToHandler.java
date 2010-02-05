@@ -1,7 +1,16 @@
+/*******************************************************************************
+ * Copyright (c) 2010 Philipp Kursawe.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *   Philipp Kursawe (phil.kursawe@gmail.com) - initial API and implementation
+ ******************************************************************************/
 package eclipseutils.ui.copyto.internal;
 
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -20,21 +29,24 @@ import org.osgi.framework.FrameworkUtil;
 import eclipseutils.ui.copyto.api.Copyable;
 import eclipseutils.ui.copyto.api.ResponseHandler;
 import eclipseutils.ui.copyto.api.Result;
-import eclipseutils.ui.copyto.internal.responses.RedirectResponseHandler;
+import eclipseutils.ui.copyto.responses.RedirectResponseHandler;
 
 public abstract class HttpCopyToHandler implements Handler {
 
-	public static final String symbolicName = FrameworkUtil.getBundle(HttpCopyToHandler.class).getSymbolicName();
+	public static final String symbolicName = FrameworkUtil.getBundle(
+			HttpCopyToHandler.class).getSymbolicName();
 
 	private ResponseHandler getResponseHandler() {
 		try {
-			final IConfigurationElement[] configurationElements = Platform.getExtensionRegistry()
-					.getConfigurationElementsFor(HttpCopyToHandler.symbolicName, CopyToHandler.COMMAND_TARGET_PARAM,
-							getId());
+			final IConfigurationElement[] configurationElements = Platform
+					.getExtensionRegistry().getConfigurationElementsFor(
+							HttpCopyToHandler.symbolicName,
+							CopyToHandler.COMMAND_TARGET_PARAM, getId());
 			for (int i = 0; i < configurationElements.length; ++i) {
 				final IConfigurationElement configurationElement = configurationElements[i];
 				if ("responseHandler".equals(configurationElement.getName())) { //$NON-NLS-1$
-					return (ResponseHandler) configurationElement.createExecutableExtension("class"); //$NON-NLS-1$
+					return (ResponseHandler) configurationElement
+							.createExecutableExtension("class"); //$NON-NLS-1$
 				}
 			}
 			//return (ResponseHandler) this.configElement.createExecutableExtension("responseHandler"); //$NON-NLS-1$
@@ -46,17 +58,22 @@ public abstract class HttpCopyToHandler implements Handler {
 
 	protected abstract HttpMethod getMethod();
 
-	public abstract Map getParams();
+	public abstract Map<String, String> getParams();
 
 	public Result copy(final Copyable copyable, final IProgressMonitor monitor) {
 		final HttpMethod method = getMethod();
-		final IStringVariableManager variableManager = VariablesPlugin.getDefault().getStringVariableManager();
+		final IStringVariableManager variableManager = VariablesPlugin
+				.getDefault().getStringVariableManager();
 		final String text = copyable.getText();
 		final IValueVariable vars[] = {
+				variableManager
+						.newValueVariable(
+								"copyto.source", "Source", true, copyable.getSource().getClass().getName()), //$NON-NLS-1$
 				variableManager.newValueVariable(
-						"copyto.source", "Source", true, copyable.getSource().getClass().getName()), //$NON-NLS-1$
-				variableManager.newValueVariable("copyto.text", "Text to copy", true, text), //$NON-NLS-1$
-				variableManager.newValueVariable("copyto.mime-type", "MIME-Type", true, copyable.getMimeType()) }; //$NON-NLS-1$
+						"copyto.text", "Text to copy", true, text), //$NON-NLS-1$
+				variableManager
+						.newValueVariable(
+								"copyto.mime-type", "MIME-Type", true, copyable.getMimeType()) }; //$NON-NLS-1$
 
 		// Make sure they are not registered
 		variableManager.removeVariables(vars);
@@ -65,13 +82,12 @@ public abstract class HttpCopyToHandler implements Handler {
 		} catch (final CoreException e) {
 		}
 
-		final Map params = getParams();
-		final Iterator it = params.entrySet().iterator();
-		while (it.hasNext()) {
-			final Map.Entry entry = (Entry) it.next();
-			final String name = entry.getKey().toString();
+		final Map<String, String> params = getParams();
+		for (Entry<String, String> entry : params.entrySet()) {
+			final String name = entry.getKey();
 			try {
-				final String value = variableManager.performStringSubstitution(entry.getValue().toString(), false);
+				final String value = variableManager.performStringSubstitution(
+						entry.getValue(), false);
 				if (method instanceof PostMethod) {
 					((PostMethod) method).addParameter(name, value);
 				}

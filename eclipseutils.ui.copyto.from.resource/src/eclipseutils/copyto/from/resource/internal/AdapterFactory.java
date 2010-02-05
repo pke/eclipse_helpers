@@ -15,23 +15,31 @@ import eclipseutils.ui.copyto.api.Copyable;
 
 public class AdapterFactory implements IAdapterFactory {
 
-	public Object getAdapter(final Object adaptableObject, final Class adapterType) {
-		if (adapterType == Copyable.class && adaptableObject instanceof IResource) {
+	@SuppressWarnings("rawtypes")
+	public Object getAdapter(final Object adaptableObject,
+			final Class adapterType) {
+		if (adapterType == Copyable.class
+				&& adaptableObject instanceof IResource) {
 			final IPath location = ((IResource) adaptableObject).getLocation();
 			if (location != null) {
 				try {
-					ITextFileBufferManager.DEFAULT.connect(location, LocationKind.LOCATION, null);
+					ITextFileBufferManager.DEFAULT.connect(location,
+							LocationKind.LOCATION, null);
 					return new Copyable() {
 						private String text;
 
 						public String getText() {
 							if (this.text == null) {
 								final ITextFileBuffer textFileBuffer = ITextFileBufferManager.DEFAULT
-										.getTextFileBuffer(location, LocationKind.LOCATION);
-								final IDocument document = textFileBuffer.getDocument();
+										.getTextFileBuffer(location,
+												LocationKind.LOCATION);
+								final IDocument document = textFileBuffer
+										.getDocument();
 								this.text = document.get();
 								try {
-									ITextFileBufferManager.DEFAULT.disconnect(location, LocationKind.LOCATION, null);
+									ITextFileBufferManager.DEFAULT.disconnect(
+											location, LocationKind.LOCATION,
+											null);
 								} catch (final CoreException e) {
 								}
 							}
@@ -39,11 +47,14 @@ public class AdapterFactory implements IAdapterFactory {
 						}
 
 						public String getMimeType() {
-							final String extension = location.getFileExtension();
+							final String extension = location
+									.getFileExtension();
 							if ("java".equals(extension)) { //$NON-NLS-1$
 								return "text/java"; //$NON-NLS-1$
 							}
-							return URLConnection.guessContentTypeFromName(location.toOSString());
+							return URLConnection
+									.guessContentTypeFromName(location
+											.toOSString());
 						}
 
 						public Object getSource() {
@@ -57,6 +68,7 @@ public class AdapterFactory implements IAdapterFactory {
 		return null;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Class[] getAdapterList() {
 		return null;
 	}

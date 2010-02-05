@@ -10,11 +10,12 @@ import org.eclipse.core.commands.IParameterValues;
 public class FormatValues implements IParameterValues {
 	static Properties formats;
 
-	public Map getParameterValues() {
+	public Map<?, ?> getParameterValues() {
 		if (formats == null) {
 			formats = new Properties();
 			try {
-				final InputStream resourceAsStream = getClass().getResourceAsStream("FormatValues.properties"); //$NON-NLS-1$
+				final InputStream resourceAsStream = getClass()
+						.getResourceAsStream("FormatValues.properties"); //$NON-NLS-1$
 				if (resourceAsStream != null) {
 					formats.load(resourceAsStream);
 				}

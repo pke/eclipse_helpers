@@ -24,4 +24,14 @@
          </command>
       </menuContribution>
    </extension>
+   <extension
+         id="eclipseutils.ui.copyto.pastebin.ca"
+         point="eclipseutils.ui.copyto.targets">
+      <paramInfos
+            hidden="apikey,content">
+      </paramInfos>
+      <responseHandler
+            class="eclipseutils.ui.copyto.responses.JsonResponseHandler">
+      </responseHandler>
+   </extension>
 </fragment>

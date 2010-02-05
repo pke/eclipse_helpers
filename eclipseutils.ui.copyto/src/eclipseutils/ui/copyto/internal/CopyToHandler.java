@@ -1,13 +1,21 @@
+/*******************************************************************************
+ * Copyright (c) 2010 Philipp Kursawe.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *   Philipp Kursawe (phil.kursawe@gmail.com) - initial API and implementation
+ ******************************************************************************/
 package eclipseutils.ui.copyto.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.commons.httpclient.HttpMethod;
@@ -52,6 +60,7 @@ import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextSelection;
@@ -60,6 +69,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
@@ -71,87 +81,141 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.eclipse.ui.menus.UIElement;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.osgi.framework.FrameworkUtil;
+import org.osgi.util.tracker.ServiceTracker;
 
 import eclipseutils.ui.copyto.api.Copyable;
+import eclipseutils.ui.copyto.api.CustomParamControl;
 import eclipseutils.ui.copyto.api.Result;
+import eclipseutils.ui.copyto.api.Results;
+import eclipseutils.ui.copyto.api.ResultsHandler;
 import eclipseutils.ui.copyto.internal.results.ClipboardResultsHandler;
 
 /**
  * 
- * There are 2 types of handlers:
- * 1. ElementHandler
- * 2. TextEditorHandler
+ * There are 2 types of handlers: 1. ElementHandler 2. TextEditorHandler
+ * 
  * @author <a href="mailto:kursawe@topsystem.de">Philipp Kursawe</a>
  * @since 1.0
  */
-public class CopyToHandler extends AbstractHandler implements IElementUpdater {
+public class CopyToHandler extends AbstractHandler {
 
 	public static final String COMMAND_ID = "eclipseutils.ui.copyto"; //$NON-NLS-1$
 	public static final String COMMAND_TARGET_PARAM = "targets"; //$NON-NLS-1$
 
 	private final IAdapterManager adapterManager = Platform.getAdapterManager();
+	private final ServiceTracker resultsHandlerTracker = new ServiceTracker(
+			FrameworkUtil.getBundle(CopyToHandler.class).getBundleContext(),
+			ResultsHandler.class.getName(), null) {
+		{
+			open();
+		}
+	};
+
+	@Override
+	public void dispose() {
+		resultsHandlerTracker.close();
+		super.dispose();
+	}
+
+	/**
+	 * Creates a boolen control on the standard grid.
+	 * 
+	 * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
+	 * 
+	 */
+	class BooleanParamControl implements CustomParamControl {
+		private final String label;
+		private final String desc;
+
+		public BooleanParamControl(String label, String desc) {
+			this.label = label;
+			this.desc = desc;
+		}
+
+		public IObservableValue createControl(Composite parent) {
+			final Button button = new Button(parent, SWT.CHECK);
+			button.setText(label);
+			if (desc != null) {
+				button.setToolTipText(desc);
+			}
+			GridDataFactory.swtDefaults().span(2, 1).applyTo(button);
+			return SWTObservables.observeSelection(button);
+		}
+	}
 
 	private class RequestParamsDialog extends TitleAreaDialog {
 		private final Handler handler;
 
-		public RequestParamsDialog(final Shell parentShell, final Handler handler) {
+		public RequestParamsDialog(final Shell parentShell,
+				final Handler handler) {
 			super(parentShell);
 			this.handler = handler;
 		}
 
+		@Override
 		protected Control createDialogArea(final Composite parent) {
 			final DataBindingContext dbx = new DataBindingContext();
 
-			final IMapProperty selfMap = Properties.selfMap(String.class, String.class);
-			final IObservableMap observableParams = selfMap.observe(this.handler.getParams());
+			final IMapProperty selfMap = Properties.selfMap(String.class,
+					String.class);
+			final IObservableMap observableParams = selfMap
+					.observe(this.handler.getParams());
 
-			final Map paramInfos = new HashMap();
-			final Set hidden = new HashSet();
+			final Map<String, IConfigurationElement> paramInfos = new HashMap<String, IConfigurationElement>();
 
-			// Add all handler params to the paramInfos map first, as we will later iterate over it
-			final Iterator it = this.handler.getParams().keySet().iterator();
+			// Add all handler params to the paramInfos map first, as we will
+			// later iterate over it
+			final Iterator<String> it = this.handler.getParams().keySet()
+					.iterator();
 			while (it.hasNext()) {
 				paramInfos.put(it.next(), null);
 			}
 
-			final IConfigurationElement[] configurationElements = Platform.getExtensionRegistry()
-					.getConfigurationElementsFor(FrameworkUtil.getBundle(getClass()).getSymbolicName(),
-							CopyToHandler.COMMAND_TARGET_PARAM, this.handler.getId());
+			final IConfigurationElement[] configurationElements = Platform
+					.getExtensionRegistry().getConfigurationElementsFor(
+							FrameworkUtil.getBundle(getClass())
+									.getSymbolicName(),
+							CopyToHandler.COMMAND_TARGET_PARAM,
+							this.handler.getId());
 			for (int i = 0; i < configurationElements.length; ++i) {
 				final IConfigurationElement configurationElement = configurationElements[i];
 				if ("paramInfos".equals(configurationElement.getName())) {
-					final String hiddenAttribute = configurationElement.getAttribute("hidden");
-					if (hiddenAttribute != null && hiddenAttribute.length() > 0) {
-						hidden.addAll(Arrays.asList(hiddenAttribute.split(",")));
-					}
-					final IConfigurationElement[] paramConfigs = configurationElement.getChildren("paramInfo");
+					final IConfigurationElement[] paramConfigs = configurationElement
+							.getChildren("paramInfo");
 					for (int j = 0; j < paramConfigs.length; ++j) {
-						paramInfos.put(paramConfigs[j].getAttribute("name"), paramConfigs[j]);
+						paramInfos.put(paramConfigs[j].getAttribute("name"),
+								paramConfigs[j]);
+					}
+					final String hiddenAttribute = configurationElement
+							.getAttribute("hidden");
+					if (hiddenAttribute != null && hiddenAttribute.length() > 0) {
+						for (String key : hiddenAttribute.split(",")) {
+							paramInfos.remove(key);
+						}
 					}
 				}
 			}
 
-			final Composite client = new Composite((Composite) super.createDialogArea(parent), SWT.NULL);
+			final Composite client = new Composite((Composite) super
+					.createDialogArea(parent), SWT.NULL);
 			GridLayoutFactory.swtDefaults().numColumns(2).applyTo(client);
 
-			final Iterator entries = paramInfos.entrySet().iterator();
+			final Iterator<Entry<String, IConfigurationElement>> entries = paramInfos
+					.entrySet().iterator();
 			while (entries.hasNext()) {
-				final Entry entry = (Entry) entries.next();
-				final Object key = entry.getKey();
-				if (hidden.contains(key)) {
-					continue;
-				}
+				final Entry<String, IConfigurationElement> entry = entries
+						.next();
+				final String key = entry.getKey();
 
 				final IObservableValue controlObservable[] = { null };
 
 				Runnable editorCreator = new Runnable() {
 					public void run() {
-						final Text text = new Text(client, SWT.SINGLE | SWT.BORDER);
+						final Text text = new Text(client, SWT.SINGLE
+								| SWT.BORDER);
 						controlObservable[0] = SWTObservables.observeText(text);
 						// text.setText(entry.getValue().toString());
 					}
@@ -159,9 +223,10 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 				final String defaultLabelText = key.toString();
 				String labelText = defaultLabelText;
 				String desc = null;
-				final IConfigurationElement configElement = (IConfigurationElement) entry.getValue();
+				final IConfigurationElement configElement = entry.getValue();
 				if (configElement != null) {
-					if (Boolean.valueOf(configElement.getAttribute("hidden")).booleanValue()) {
+					if (Boolean.valueOf(configElement.getAttribute("hidden"))
+							.booleanValue()) {
 						continue;
 					}
 					final String text = configElement.getAttribute("label");
@@ -171,23 +236,31 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 					desc = configElement.getAttribute("description");
 					final String className = configElement.getAttribute("type");
 					if ("bool".equals(className) || "boolean".equals(className)
-							|| Boolean.class.getName().equals(className) || boolean.class.getName().equals(className)) {
+							|| Boolean.class.getName().equals(className)
+							|| boolean.class.getName().equals(className)) {
 						editorCreator = new Runnable() {
 							public void run() {
-								final Button button = new Button(client, SWT.CHECK);
-								controlObservable[0] = SWTObservables.observeSelection(button);
+								final Button button = new Button(client,
+										SWT.CHECK);
+								controlObservable[0] = SWTObservables
+										.observeSelection(button);
 							}
 						};
 					} else if (className != null) {
 						try {
-							final Object typeInstance = configElement.createExecutableExtension("type");
+							final Object typeInstance = configElement
+									.createExecutableExtension("type");
 							if (typeInstance instanceof IParameterValues) {
 								editorCreator = new Runnable() {
 									public void run() {
-										final ComboViewer combo = new ComboViewer(client, SWT.DROP_DOWN);
-										combo.setContentProvider(ArrayContentProvider.getInstance());
-										controlObservable[0] = SWTObservables.observeText(combo.getControl());
-										final Map params = ((IParameterValues) typeInstance).getParameterValues();
+										final ComboViewer combo = new ComboViewer(
+												client, SWT.DROP_DOWN);
+										combo.setContentProvider(ArrayContentProvider
+												.getInstance());
+										controlObservable[0] = SWTObservables
+												.observeText(combo.getControl());
+										final Map<?, ?> params = ((IParameterValues) typeInstance)
+												.getParameterValues();
 										combo.setInput(params.values());
 									}
 								};
@@ -204,7 +277,8 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 				}
 				editorCreator.run();
 				if (controlObservable[0] != null) {
-					final IObservableValue observeMapEntry = Observables.observeMapEntry(observableParams, key);
+					final IObservableValue observeMapEntry = Observables
+							.observeMapEntry(observableParams, key);
 					dbx.bindValue(controlObservable[0], observeMapEntry);
 				}
 			}
@@ -214,7 +288,7 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 	}
 
 	class EventHttpCopyHandler extends HttpCopyToHandler {
-		private final Map params = new HashMap();
+		private final Map<String, String> params = new HashMap<String, String>();
 		private final HttpMethod method;
 		private final String id;
 
@@ -227,15 +301,18 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 			final String[] pairs = params.split("&"); //$NON-NLS-1$
 			for (int i = 0; i < pairs.length; ++i) {
 				final String[] keyValue = pairs[i].split("="); //$NON-NLS-1$
-				this.params.put(keyValue[0], keyValue.length == 1 ? "" : keyValue[1]);
+				this.params.put(keyValue[0], keyValue.length == 1 ? ""
+						: keyValue[1]);
 			}
 		}
 
+		@Override
 		protected HttpMethod getMethod() {
 			return this.method;
 		}
 
-		public Map getParams() {
+		@Override
+		public Map<String, String> getParams() {
 			return this.params;
 		}
 
@@ -245,21 +322,23 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 
 	}
 
-	/** 
-	 * If CTRL key hold down
-	 * 1. First collect all Copyable
-	 * 2. Group them by mime-type
-	 * 3. Show wizard page for each mime-type (resolve vars before displaying page)
-	 * 4. Upon "Finish click", send to server -> report progress
+	/**
+	 * If CTRL key hold down 1. First collect all Copyable 2. Group them by
+	 * mime-type 3. Show wizard page for each mime-type (resolve vars before
+	 * displaying page) 4. Upon "Finish click", send to server -> report
+	 * progress
 	 */
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
-		final IPreferenceStore prefs = new ScopedPreferenceStore(new InstanceScope(), FrameworkUtil.getBundle(
-				getClass()).getSymbolicName());
+		final IPreferenceStore prefs = new ScopedPreferenceStore(
+				new InstanceScope(), FrameworkUtil.getBundle(getClass())
+						.getSymbolicName());
+		final IEditorPart editor = HandlerUtil.getActiveEditor(event);
+		IShellProvider shellProvider = HandlerUtil
+				.getActiveWorkbenchWindowChecked(event);
 		ISelection selection = HandlerUtil.getActiveMenuSelection(event);
 		if (selection == null) {
 			selection = HandlerUtil.getCurrentSelectionChecked(event);
 		}
-		final Shell activeShell = HandlerUtil.getActiveShell(event);
 
 		final EventHttpCopyHandler target = new EventHttpCopyHandler(event);
 
@@ -268,32 +347,37 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 			final Event triggerEvent = (Event) trigger;
 			final int modifier = triggerEvent.stateMask & SWT.MODIFIER_MASK;
 			if ((modifier & SWT.CTRL) == SWT.CTRL) {
-				final Dialog dialog = new RequestParamsDialog(activeShell, target);
+				final Dialog dialog = new RequestParamsDialog(shellProvider
+						.getShell(), target);
 				if (dialog.open() != Window.OK) {
 					return null;
 				}
 			}
 		}
 
-		final List successes = new ArrayList();
-		final List failures = new ArrayList();
+		final List<Result> successes = new ArrayList<Result>();
+		final List<Result> failures = new ArrayList<Result>();
 
 		if (selection instanceof IStructuredSelection) {
 			final IStructuredSelection ss = (IStructuredSelection) selection;
-			final Iterator it = ss.iterator();
+			final Iterator<?> it = ss.iterator();
 			while (it.hasNext()) {
 				final Object item = it.next();
 
-				Copyable copyable = (Copyable) this.adapterManager.loadAdapter(item, Copyable.class.getName());
+				Copyable copyable = (Copyable) this.adapterManager.loadAdapter(
+						item, Copyable.class.getName());
 				if (copyable == null) {
-					final IResource resource = (IResource) this.adapterManager.loadAdapter(item, IResource.class
-							.getName());
-					copyable = (Copyable) this.adapterManager.loadAdapter(resource, Copyable.class.getName());
+					final IResource resource = (IResource) this.adapterManager
+							.loadAdapter(item, IResource.class.getName());
+					copyable = (Copyable) this.adapterManager.loadAdapter(
+							resource, Copyable.class.getName());
 				}
 
 				if (copyable != null) {
-					final Result result = target.copy(copyable, new NullProgressMonitor());
-					if (result.getStatus().isOK() && result.getLocation() != null) {
+					final Result result = target.copy(copyable,
+							new NullProgressMonitor());
+					if (result.getStatus().isOK()
+							&& result.getLocation() != null) {
 						successes.add(result);
 					} else {
 						failures.add(result);
@@ -301,13 +385,14 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 				}
 			}
 		} else if (selection instanceof ITextSelection) {
-			final IEditorPart editor = HandlerUtil.getActiveEditor(event);
-			Copyable copyable = (Copyable) this.adapterManager.loadAdapter(editor, Copyable.class.getName());
+			Copyable copyable = (Copyable) this.adapterManager.loadAdapter(
+					editor, Copyable.class.getName());
 			if (null == copyable) {
 				copyable = new TextSelectionCopyable(selection);
 			}
 			if (copyable != null) {
-				final Result result = target.copy(copyable, new NullProgressMonitor());
+				final Result result = target.copy(copyable,
+						new NullProgressMonitor());
 				if (result.getStatus().isOK() && result.getLocation() != null) {
 					successes.add(result);
 				} else {
@@ -316,33 +401,56 @@ public class CopyToHandler extends AbstractHandler implements IElementUpdater {
 			}
 		}
 		if (!successes.isEmpty() || !failures.isEmpty()) {
-			new ClipboardResultsHandler().handleResults(successes, failures);
-			/*if (prefs.getBoolean("config.copyToClipboard")) {
-				final MessageDialogWithToggle dialog = MessageDialogWithToggle.openYesNoQuestion(activeShell,
-						"CopyTo ...clipboard", "Do you want to copy the locations {} to the clipboard?",
-						"Always. Do not ask again", false, prefs, "config.copyToClipboard");
-				if (dialog.open() != 0) {
-					new ClipboardResultsHandler().handleResults(results);
+			Results results = new Results() {
+
+				public Collection<Result> getFailures() {
+					return failures;
 				}
-			}*/
+
+				public Collection<Result> getSuccesses() {
+					return successes;
+				}
+
+			};
+			Object[] services = resultsHandlerTracker.getServices();
+			if (services != null) {
+				for (Object service : services) {
+					try {
+						((ResultsHandler) service).handleResults(results,
+								shellProvider);
+					} catch (Throwable t) {
+					}
+				}
+			}
+			new ClipboardResultsHandler().handleResults(results, shellProvider);
+			/*
+			 * if (prefs.getBoolean("config.copyToClipboard")) { final
+			 * MessageDialogWithToggle dialog =
+			 * MessageDialogWithToggle.openYesNoQuestion(activeShell,
+			 * "CopyTo ...clipboard",
+			 * "Do you want to copy the locations {} to the clipboard?",
+			 * "Always. Do not ask again", false, prefs,
+			 * "config.copyToClipboard"); if (dialog.open() != 0) { new
+			 * ClipboardResultsHandler().handleResults(results); } }
+			 */
 		}
 		return null;
 	}
 
-	public void updateElement(final UIElement element, final Map parameters) {
-	}
-
-	private IJavaElement getSelectedElement(final IEditorPart editor, final ISourceViewer viewer) {
+	private IJavaElement getSelectedElement(final IEditorPart editor,
+			final ISourceViewer viewer) {
 		final Point selectedRange = viewer.getSelectedRange();
 		final int length = selectedRange.y;
 		final int offset = selectedRange.x;
 
-		final ITypeRoot element = JavaUI.getEditorInputTypeRoot(editor.getEditorInput());
+		final ITypeRoot element = JavaUI.getEditorInputTypeRoot(editor
+				.getEditorInput());
 		if (element == null) {
 			return null;
 		}
 
-		final CompilationUnit ast = SharedASTProvider.getAST(element, SharedASTProvider.WAIT_YES, null);
+		final CompilationUnit ast = SharedASTProvider.getAST(element,
+				SharedASTProvider.WAIT_YES, null);
 		if (ast == null) {
 			return null;
 		}
