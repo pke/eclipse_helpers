@@ -24,8 +24,10 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 public class MenuFactory extends ExtensionContributionFactory {
-	private final Bundle bundle = FrameworkUtil.getBundle(getClass());
-	private final String menuUri = "menu:" + bundle.getSymbolicName() + ".menu";
+	private final static Bundle bundle = FrameworkUtil
+			.getBundle(MenuFactory.class);
+	public static final String MENU_URI = "menu:" + bundle.getSymbolicName()
+			+ ".menu";
 
 	@Override
 	public void createContributionItems(final IServiceLocator locator,
@@ -36,6 +38,7 @@ public class MenuFactory extends ExtensionContributionFactory {
 				"$nl$/icons/e16/copyto.png"), null);
 		ImageDescriptor icon = (iconEntry != null) ? ImageDescriptor
 				.createFromURL(iconEntry) : null;
+
 		final MenuManager menuManager = new MenuManager("Copy To", icon, null) { //$NON-NLS-2$
 			@Override
 			public void dispose() {
@@ -43,7 +46,7 @@ public class MenuFactory extends ExtensionContributionFactory {
 				super.dispose();
 			};
 		};
-		menuService.populateContributionManager(menuManager, menuUri);
+		menuService.populateContributionManager(menuManager, MENU_URI);
 		if (menuManager.getSize() == 1) {
 			root.addContributionItem(menuManager.getItems()[0], null);
 			menuManager.dispose();

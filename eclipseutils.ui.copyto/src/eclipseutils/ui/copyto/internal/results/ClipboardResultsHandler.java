@@ -36,14 +36,13 @@ import eclipseutils.ui.copyto.api.ResultsHandler;
 
 public class ClipboardResultsHandler implements ResultsHandler {
 
-	public static final String CLIPBOARD_CONFIRM_OVERWRITE = "clipboard.alwaysOverwrite";
+	public static final String CLIPBOARD_ALWAYS_OVERWRITE = "clipboard.alwaysOverwrite";
 
 	public void handleResults(Results results, IShellProvider shellProvider) {
 		final IPreferenceStore prefs = new ScopedPreferenceStore(
 				new InstanceScope(), FrameworkUtil.getBundle(getClass())
 						.getSymbolicName());
-		boolean overwrite = MessageDialogWithToggle.ALWAYS.equals(prefs
-				.getString(CLIPBOARD_CONFIRM_OVERWRITE));
+		boolean overwrite = prefs.getBoolean(CLIPBOARD_ALWAYS_OVERWRITE);
 
 		final String joinedURLs = joinURLs(results.getSuccesses());
 		if (joinedURLs.length() > 0) {
@@ -65,8 +64,7 @@ public class ClipboardResultsHandler implements ResultsHandler {
 							return;
 						}
 						if (dialog.getToggleState()) {
-							prefs.putValue(CLIPBOARD_CONFIRM_OVERWRITE,
-									MessageDialogWithToggle.ALWAYS);
+							prefs.setValue(CLIPBOARD_ALWAYS_OVERWRITE, true);
 						}
 					}
 				}

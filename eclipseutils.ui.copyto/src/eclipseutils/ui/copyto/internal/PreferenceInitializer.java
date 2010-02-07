@@ -11,7 +11,7 @@
 package eclipseutils.ui.copyto.internal;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
-import org.eclipse.core.runtime.preferences.DefaultScope;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.prefs.Preferences;
 
@@ -19,8 +19,11 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
 	@Override
 	public void initializeDefaultPreferences() {
-		final Preferences node = new DefaultScope().getNode(FrameworkUtil
+		final Preferences node = new InstanceScope().getNode(FrameworkUtil
 				.getBundle(getClass()).getSymbolicName());
-		node.putBoolean("confirm.copyToClipboard", true); //$NON-NLS-1$
+		Preferences preferences = node
+				.node("targets/eclipseutils.ui.copyto.pastebin.com");
+		preferences.put("url", "http://pastebin.com/");
+		preferences.put("label", "pastebin.com");
 	}
 }

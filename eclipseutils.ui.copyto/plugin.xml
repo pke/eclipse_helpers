@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension-point id="targets" name="%extension-point.name" schema="schema/targets.exsd"/>
+   <extension-point id="targets" name="%Bundle-Name" schema="schema/targets.exsd"/>
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=copy" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
-      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=org.eclipse.ui.edit.copy" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
+      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?before=additions" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
       <menuContribution locationURI="menu:edit?after=copy" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
       <menuContribution locationURI="toolbar:org.eclipse.ui.workbench.file?before=print">
             <command
@@ -98,5 +98,13 @@
                type="java.net.URL">
          </adapter>
       </factory>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="eclipseutils.ui.copyto.internal.preferences.CopyToPreferencePage"
+            id="eclipseutils.ui.copyto.page1"
+            name="CopyTo">
+      </page>
    </extension>
 </plugin>

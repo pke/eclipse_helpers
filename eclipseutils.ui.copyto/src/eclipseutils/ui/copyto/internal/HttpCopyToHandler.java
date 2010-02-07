@@ -32,24 +32,30 @@ public abstract class HttpCopyToHandler implements Handler {
 	public static final String symbolicName = FrameworkUtil.getBundle(
 			HttpCopyToHandler.class).getSymbolicName();
 
+	private ResponseHandler responseHandler;
+
 	private ResponseHandler getResponseHandler() {
-		try {
-			final IConfigurationElement[] configurationElements = Platform
-					.getExtensionRegistry().getConfigurationElementsFor(
-							HttpCopyToHandler.symbolicName,
-							CopyToHandler.COMMAND_TARGET_PARAM, getId());
-			for (int i = 0; i < configurationElements.length; ++i) {
-				final IConfigurationElement configurationElement = configurationElements[i];
-				if ("responseHandler".equals(configurationElement.getName())) { //$NON-NLS-1$
-					return (ResponseHandler) configurationElement
-							.createExecutableExtension("class"); //$NON-NLS-1$
+		if (null == responseHandler) {
+			try {
+				final IConfigurationElement[] configurationElements = Platform
+						.getExtensionRegistry().getConfigurationElementsFor(
+								HttpCopyToHandler.symbolicName,
+								CopyToHandler.COMMAND_TARGET_PARAM, getId());
+				for (final IConfigurationElement configurationElement : configurationElements) {
+					if ("responseHandler".equals(configurationElement.getName())) { //$NON-NLS-1$
+						responseHandler = (ResponseHandler) configurationElement
+								.createExecutableExtension("class"); //$NON-NLS-1$
+						break;
+					}
 				}
+			} catch (final Exception e) {
+				// Catches ClassCastException and CoreException
 			}
-			//return (ResponseHandler) this.configElement.createExecutableExtension("responseHandler"); //$NON-NLS-1$
-		} catch (final Exception e) {
-			// Catches ClassCastException and CoreException
+			if (null == responseHandler) {
+				responseHandler = new RedirectResponseHandler();
+			}
 		}
-		return new RedirectResponseHandler();
+		return responseHandler;
 	}
 
 	protected abstract HttpMethod getMethod();
@@ -69,6 +75,7 @@ public abstract class HttpCopyToHandler implements Handler {
 
 		try {
 			final int status = httpClient.executeMethod(method);
+			// TODO: Handle status here
 			final URL location = getResponseHandler().getLocation(method);
 			return new ResultImpl(copyable, location);
 		} catch (final Throwable t) {
