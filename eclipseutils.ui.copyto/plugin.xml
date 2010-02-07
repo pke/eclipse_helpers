@@ -4,13 +4,15 @@
    <extension-point id="targets" name="%extension-point.name" schema="schema/targets.exsd"/>
    <extension
          point="org.eclipse.ui.menus">
-      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-      <menu
-            label="%menu.label" id="eclipseutils.ui.copyto.menu">
-      </menu>
+      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=copy" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
+      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=org.eclipse.ui.edit.copy" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
+      <menuContribution locationURI="menu:edit?after=copy" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
+      <menuContribution locationURI="toolbar:org.eclipse.ui.workbench.file?before=print">
+            <command
+                  commandId="eclipseutils.ui.copyto.dropdown" id="eclipseutils.ui.copyto.menu" label="CopyTo"
+                  style="pulldown">
+            </command>
       </menuContribution>
-      <!--menuContribution locationURI="menu:edit?after=copy" class="eclipseutils.ui.copyto.internal.MenuFactory">
-      </menuContribution-->
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -32,6 +34,14 @@
                name="%commandParameter.id.name"
                optional="true">
          </commandParameter>
+         <state
+               class="eclipseutils.ui.copyto.internal.LastCommandState"
+               id="lastId">
+         </state>
+      </command>
+      <command
+            id="eclipseutils.ui.copyto.dropdown"
+            name="CopyTo">
       </command>      
    </extension>
    <extension
@@ -39,6 +49,10 @@
       <handler
             class="eclipseutils.ui.copyto.internal.CopyToHandler"
             commandId="eclipseutils.ui.copyto">
+      </handler>
+      <handler
+            class="eclipseutils.ui.copyto.internal.CopyToDropDownHandler"
+            commandId="eclipseutils.ui.copyto.dropdown">
       </handler>
    </extension>
    <extension

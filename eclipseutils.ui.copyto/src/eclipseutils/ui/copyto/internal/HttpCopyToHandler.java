@@ -17,13 +17,9 @@ import java.util.Map.Entry;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.variables.IStringVariableManager;
-import org.eclipse.core.variables.IValueVariable;
-import org.eclipse.core.variables.VariablesPlugin;
 import org.osgi.framework.FrameworkUtil;
 
 import eclipseutils.ui.copyto.api.Copyable;
@@ -58,43 +54,16 @@ public abstract class HttpCopyToHandler implements Handler {
 
 	protected abstract HttpMethod getMethod();
 
-	public abstract Map<String, String> getParams();
-
-	public Result copy(final Copyable copyable, final IProgressMonitor monitor) {
+	public Result copy(final Copyable copyable,
+			final Map<String, String> params, final IProgressMonitor monitor) {
 		final HttpMethod method = getMethod();
-		final IStringVariableManager variableManager = VariablesPlugin
-				.getDefault().getStringVariableManager();
-		final String text = copyable.getText();
-		final IValueVariable vars[] = {
-				variableManager
-						.newValueVariable(
-								"copyto.source", "Source", true, copyable.getSource().getClass().getName()), //$NON-NLS-1$
-				variableManager.newValueVariable(
-						"copyto.text", "Text to copy", true, text), //$NON-NLS-1$
-				variableManager
-						.newValueVariable(
-								"copyto.mime-type", "MIME-Type", true, copyable.getMimeType()) }; //$NON-NLS-1$
 
-		// Make sure they are not registered
-		variableManager.removeVariables(vars);
-		try {
-			variableManager.addVariables(vars);
-		} catch (final CoreException e) {
-		}
-
-		final Map<String, String> params = getParams();
 		for (Entry<String, String> entry : params.entrySet()) {
 			final String name = entry.getKey();
-			try {
-				final String value = variableManager.performStringSubstitution(
-						entry.getValue(), false);
-				if (method instanceof PostMethod) {
-					((PostMethod) method).addParameter(name, value);
-				}
-			} catch (final CoreException e) {
+			if (method instanceof PostMethod) {
+				((PostMethod) method).addParameter(name, entry.getValue());
 			}
 		}
-		variableManager.removeVariables(vars);
 
 		final HttpClient httpClient = new HttpClient();
 

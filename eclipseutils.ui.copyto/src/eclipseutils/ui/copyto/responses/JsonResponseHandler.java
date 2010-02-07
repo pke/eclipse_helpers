@@ -28,7 +28,7 @@ import eclipseutils.ui.copyto.api.json.Response;
  * This tries to convert the JSON result into an URL by asking for an adapter
  * that can adapt {@link Response} to {@link URL}.
  * 
- * @author <a href="mailto:kursawe@topsystem.de">Philipp Kursawe</a>
+ * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
  * 
  */
 public class JsonResponseHandler implements ResponseHandler {

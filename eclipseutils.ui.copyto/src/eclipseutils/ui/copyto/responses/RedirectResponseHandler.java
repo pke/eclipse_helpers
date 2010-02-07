@@ -18,6 +18,12 @@ import org.apache.commons.httpclient.HttpMethod;
 
 import eclipseutils.ui.copyto.api.ResponseHandler;
 
+/**
+ * (Default) ResonseHandler that handles 302-Redirect responses.
+ * 
+ * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
+ * 
+ */
 public class RedirectResponseHandler implements ResponseHandler {
 
 	public URL getLocation(final HttpMethod method) throws Exception {

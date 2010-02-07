@@ -10,6 +10,9 @@
  ******************************************************************************/
 package eclipseutils.ui.copyto.internal;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.ui.menus.ExtensionContributionFactory;
 import org.eclipse.ui.menus.IContributionRoot;
@@ -17,17 +20,18 @@ import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.services.IServiceLocator;
 import org.osgi.framework.FrameworkUtil;
 
-public class MenuFactory extends ExtensionContributionFactory {
+public class MenuFactory extends ExtensionContributionFactory implements
+		IExecutableExtension {
 	private final String symbolicName = FrameworkUtil.getBundle(getClass())
 			.getSymbolicName();
+	private boolean isToolbar;
 
 	@Override
 	public void createContributionItems(final IServiceLocator locator,
 			final IContributionRoot root) {
 		final IMenuService menuService = (IMenuService) locator
 				.getService(IMenuService.class);
-		final MenuManager menuManager = new MenuManager(
-				"Copy To", this.symbolicName + ".menu") { //$NON-NLS-2$
+		final MenuManager menuManager = new MenuManager("Copy To", null) { //$NON-NLS-2$
 			@Override
 			public void dispose() {
 				menuService.releaseContributions(this);
@@ -35,7 +39,7 @@ public class MenuFactory extends ExtensionContributionFactory {
 			};
 		};
 		menuService.populateContributionManager(menuManager, "menu:"
-				+ menuManager.getId());
+				+ this.symbolicName + ".menu");
 		if (menuManager.getSize() == 1) {
 			root.addContributionItem(menuManager.getItems()[0], null);
 			menuManager.dispose();
@@ -44,4 +48,10 @@ public class MenuFactory extends ExtensionContributionFactory {
 		}
 	}
 
+	@Override
+	public void setInitializationData(IConfigurationElement config,
+			String propertyName, Object data) throws CoreException {
+		super.setInitializationData(config, propertyName, data);
+		this.isToolbar = "toolbar".equals(data);
+	}
 }

@@ -19,6 +19,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.IShellProvider;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
@@ -56,8 +57,10 @@ public class ClipboardResultsHandler implements ResultsHandler {
 								.openYesNoQuestion(
 										shellProvider.getShell(),
 										"Confirm overwriting of clipboard content",
-										"The clipboard is not empty.\nDo you want to replace its content?",
-										"Always", false, null, null);
+										NLS.bind(
+												"Your selection was successfully copied to the URL\n{0}\nand is ready to be copied into your clipboard.\n\nHowever, the clipboard is not empty.\nDo you want to replace its content?",
+												joinedURLs), "Always", false,
+										null, null);
 						if (IDialogConstants.YES_ID != dialog.getReturnCode()) {
 							return;
 						}

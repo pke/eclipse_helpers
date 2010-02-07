@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
-            locationURI="popup:eclipseutils.ui.copyto.menu">
+            locationURI="menu:eclipseutils.ui.copyto.menu">
             <command
                commandId="eclipseutils.ui.copyto"
                label="codepad.org"

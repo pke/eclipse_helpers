@@ -34,12 +34,8 @@ public interface Handler {
 	 * @return
 	 * @throws Exception
 	 */
-	Result copy(final Copyable copyable, IProgressMonitor monitor);
-
-	/**
-	 * @return the declared params
-	 */
-	Map<String, String> getParams();
+	Result copy(final Copyable copyable, Map<String, String> params,
+			IProgressMonitor monitor);
 
 	String getId();
 }

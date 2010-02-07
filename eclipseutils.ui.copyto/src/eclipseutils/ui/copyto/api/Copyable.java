@@ -17,6 +17,9 @@ package eclipseutils.ui.copyto.api;
  */
 public interface Copyable {
 	/**
+	 * Implementation should lazy initialize and cache the returned text, as
+	 * this is called at least twice.
+	 * 
 	 * @return textual representation.
 	 */
 	String getText();
