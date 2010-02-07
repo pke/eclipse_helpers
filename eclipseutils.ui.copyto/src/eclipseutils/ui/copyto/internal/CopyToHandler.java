@@ -408,7 +408,7 @@ public class CopyToHandler extends AbstractHandler implements IStateListener,
 
 	@SuppressWarnings("rawtypes")
 	public void updateElement(final UIElement element, Map parameters) {
-		loadFavIcon(element, (String) parameters.get("url"));
+		// loadFavIcon(element, (String) parameters.get("url"));
 	}
 
 	public static void loadFavIcon(final UIElement element, String fullUrl) {

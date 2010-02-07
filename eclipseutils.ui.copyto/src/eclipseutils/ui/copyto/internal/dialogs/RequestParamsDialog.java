@@ -20,6 +20,8 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -44,6 +46,11 @@ public class RequestParamsDialog extends TitleAreaDialog {
 	@Override
 	protected Control createDialogArea(final Composite parent) {
 		final DataBindingContext dbx = new DataBindingContext();
+		parent.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent event) {
+				dbx.dispose();
+			}
+		});
 
 		final IMapProperty selfMap = Properties.selfMap(String.class,
 				String.class);

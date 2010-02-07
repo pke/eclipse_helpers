@@ -54,16 +54,15 @@ public class CopyToDropDownHandler extends AbstractHandler implements
 		String label = LastCommandState.getLabel(lastIdState);
 		if (!"".equals(label)) {
 			String text = NLS.bind("CopyTo {0}", label);
-			// element.setText(text);
 			element.setTooltip(text);
 
-			ParameterizedCommand parameterizedCommand = LastCommandState.getId(
+			/*ParameterizedCommand parameterizedCommand = LastCommandState.getId(
 					commandService, lastIdState);
 			if (parameterizedCommand != null) {
 				CopyToHandler.loadFavIcon(element,
 						(String) parameterizedCommand.getParameterMap().get(
 								"url"));
-			}
+			}*/
 		} else {
 			element.setTooltip("Select a CopyTo target from the dropdown");
 		}

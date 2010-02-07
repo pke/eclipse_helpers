@@ -9,7 +9,10 @@
       <menuContribution locationURI="menu:edit?after=copy" class="eclipseutils.ui.copyto.internal.MenuFactory"/>
       <menuContribution locationURI="toolbar:org.eclipse.ui.workbench.file?before=print">
             <command
-                  commandId="eclipseutils.ui.copyto.dropdown" id="eclipseutils.ui.copyto.menu" label="CopyTo"
+                  commandId="eclipseutils.ui.copyto.dropdown"
+                  icon="icons/e16/copyto.png"
+                  id="eclipseutils.ui.copyto.menu"
+                  label="CopyTo"
                   style="pulldown">
             </command>
       </menuContribution>
@@ -95,5 +98,5 @@
                type="java.net.URL">
          </adapter>
       </factory>
-   </extension>    
+   </extension>
 </plugin>

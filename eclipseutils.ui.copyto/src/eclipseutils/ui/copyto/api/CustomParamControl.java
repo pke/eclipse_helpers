@@ -27,6 +27,9 @@ import eclipseutils.ui.copyto.CustomExtensionParamControl;
  * Exemplary use might be a control that regenerates an API key to gain access
  * to a web service.
  * 
+ * Implementors should inherit from {@link CustomExtensionParamControl}, as it
+ * provides easy access to the contributions label and description attributes.
+ * 
  * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
  * @since 0.1
  * @see CustomExtensionParamControl
@@ -38,9 +41,6 @@ public interface CustomParamControl {
 	 * @param parent
 	 *            of the control to create. The parent has a default GridLayout
 	 *            set with no margins.
-	 * @param observableValue
-	 *            the controls result must be saved into. It also contains the
-	 *            current value of the parameter.
 	 * 
 	 * @return an observable for the created control. Must never return
 	 *         <code>null</code>.

@@ -10,48 +10,45 @@
  ******************************************************************************/
 package eclipseutils.ui.copyto.internal;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExecutableExtension;
+import java.net.URL;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.menus.ExtensionContributionFactory;
 import org.eclipse.ui.menus.IContributionRoot;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.services.IServiceLocator;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
-public class MenuFactory extends ExtensionContributionFactory implements
-		IExecutableExtension {
-	private final String symbolicName = FrameworkUtil.getBundle(getClass())
-			.getSymbolicName();
-	private boolean isToolbar;
+public class MenuFactory extends ExtensionContributionFactory {
+	private final Bundle bundle = FrameworkUtil.getBundle(getClass());
+	private final String menuUri = "menu:" + bundle.getSymbolicName() + ".menu";
 
 	@Override
 	public void createContributionItems(final IServiceLocator locator,
 			final IContributionRoot root) {
 		final IMenuService menuService = (IMenuService) locator
 				.getService(IMenuService.class);
-		final MenuManager menuManager = new MenuManager("Copy To", null) { //$NON-NLS-2$
+		URL iconEntry = FileLocator.find(bundle, new Path(
+				"$nl$/icons/e16/copyto.png"), null);
+		ImageDescriptor icon = (iconEntry != null) ? ImageDescriptor
+				.createFromURL(iconEntry) : null;
+		final MenuManager menuManager = new MenuManager("Copy To", icon, null) { //$NON-NLS-2$
 			@Override
 			public void dispose() {
 				menuService.releaseContributions(this);
 				super.dispose();
 			};
 		};
-		menuService.populateContributionManager(menuManager, "menu:"
-				+ this.symbolicName + ".menu");
+		menuService.populateContributionManager(menuManager, menuUri);
 		if (menuManager.getSize() == 1) {
 			root.addContributionItem(menuManager.getItems()[0], null);
 			menuManager.dispose();
 		} else {
 			root.addContributionItem(menuManager, null);
 		}
-	}
-
-	@Override
-	public void setInitializationData(IConfigurationElement config,
-			String propertyName, Object data) throws CoreException {
-		super.setInitializationData(config, propertyName, data);
-		this.isToolbar = "toolbar".equals(data);
 	}
 }

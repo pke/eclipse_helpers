@@ -3,7 +3,8 @@
       id="eclipseutils.ui.copyto.feature"
       label="CopyTo Feature"
       version="0.1.0.qualifier"
-      provider-name="Philipp Kursawe">
+      provider-name="Philipp Kursawe"
+      plugin="eclipseutils.ui.copyto">
 
    <description url="http://github.com/pke/eclipse_helpers">
       CopyTo Extension for Eclipse Workbench
@@ -23,15 +24,18 @@
 
    <includes
          id="eclipseutils.ui.copyto.from.jdt.feature"
-         version="0.0.0"/>
+         version="0.0.0"
+         optional="true"/>
 
    <includes
          id="eclipseutils.ui.copyto.to.pastebin.ca.feature"
-         version="0.0.0"/>
+         version="0.0.0"
+         optional="true"/>
 
    <includes
          id="eclipseutils.ui.copyto.to.pastebin.com.feature"
-         version="0.0.0"/>
+         version="0.0.0"
+         optional="true"/>
 
    <requires>
       <import plugin="org.apache.commons.httpclient"/>
