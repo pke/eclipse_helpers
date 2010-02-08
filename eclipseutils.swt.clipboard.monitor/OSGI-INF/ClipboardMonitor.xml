@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="eclipseutils.swt.clipboard.monitor">
+   <implementation class="eclipseutils.swt.clipboard.monitor.internal.ClipboardMonitorComponent"/>
+   <reference cardinality="1..n" interface="eclipseutils.swt.clipboard.monitor.ClipboardListener" name="ClipboardListener" policy="dynamic"/>
+</scr:component>
