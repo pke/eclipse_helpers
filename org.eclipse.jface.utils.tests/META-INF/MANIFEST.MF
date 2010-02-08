@@ -6,4 +6,4 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: %Bundle-Vendor
 Fragment-Host: org.eclipse.jface.utils;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Require-Bundle: org.junit4;bundle-version="4.7.0"
+Require-Bundle: org.junit4;bundle-version="4.5.0"
