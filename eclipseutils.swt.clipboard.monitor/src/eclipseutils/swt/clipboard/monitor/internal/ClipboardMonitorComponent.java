@@ -15,47 +15,41 @@ import eclipseutils.swt.clipboard.monitor.ClipboardListener;
 import eclipseutils.swt.clipboard.monitor.User32;
 import eclipseutils.swt.clipboard.monitor.User32.MSG;
 
-public class ClipboardMonitorComponent implements Runnable {
+public class ClipboardMonitorComponent extends Thread {
 
-	private final Thread thread = new Thread(this, "Clipboard Monitor");;
 	private ComponentContext context;
-	User32 user32 = User32.INSTANCE;
-	HANDLE event = Kernel32.INSTANCE.CreateEvent(null, false, false, null);
+	private final User32 user32 = User32.INSTANCE;
+	private final HANDLE event = Kernel32.INSTANCE.CreateEvent(null, false,
+			false, null);
+	private HWND viewer;
+	private HWND nextViewer;
+	private User32.WNDPROC callback;
+
+	public ClipboardMonitorComponent() {
+		super("Clipboard Monitor");
+	}
 
 	protected void activate(ComponentContext context) {
 		this.context = context;
-
-		thread.start();
+		start();
 	}
 
 	protected void deactivate() {
 		Kernel32.INSTANCE.SetEvent(event);
 	}
 
-	private static final HWND HWND_DESKTOP = new HWND(Pointer
-			.createConstant(0x10014));
-	private static final int WS_POPUPWINDOW = 0x80000000 | 0x00800000 | 0x00080000;
-	private static final int CW_USEDEFAULT = 0x80000000;
-	private static final int WM_USER = 0x0400;
-	private static final int WM_DESTROY = 0x0002;
-	private static final int WM_CHANGECBCHAIN = 0x030D;
-	private static final int WM_DRAWCLIPBOARD = 0x0308;
-	private HWND viewer;
-	private HWND nextViewer;
-	private User32.WNDPROC callback;
+	final int WM_DESTROY = 0x0002;
+	final int WM_CHANGECBCHAIN = 0x030D;
+	final int WM_DRAWCLIPBOARD = 0x0308;
 
+	@Override
 	public void run() {
-		viewer = user32.CreateWindowEx(0, "STATIC", "", 0, CW_USEDEFAULT,
-				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, null, 0, 0, null);
-
-		/*user32.SetWindowPos(viewer, User32.HWND_TOPMOST, 0, 0, 0, 0,
-				(short) User32.SWP_NOSIZE);
-		*/
-		MSG msg = new MSG();
-		user32.PeekMessage(msg, viewer, WM_USER, WM_USER, User32.PM_NOREMOVE);
-
+		viewer = user32.CreateWindowEx(0, "STATIC", "", 0, 0, 0, 0, 0, null, 0,
+				0, null);
 		nextViewer = user32.SetClipboardViewer(viewer);
 
+		// Need to keep a reference to the callback, or it will be garbage
+		// collected
 		this.callback = new User32.WNDPROC() {
 			public LRESULT callback(HWND hWnd, int uMsg, WPARAM wParam,
 					LPARAM lParam) {
@@ -69,7 +63,7 @@ public class ClipboardMonitorComponent implements Runnable {
 					else if (nextViewer != null) {
 						user32.SendMessage(nextViewer, uMsg, wParam, lParam);
 					}
-					break;
+					return new LRESULT(0);
 				case WM_DRAWCLIPBOARD:
 					ClipboardEvent event = new ClipboardEvent(this);
 					Object[] listeners = context
@@ -83,19 +77,19 @@ public class ClipboardMonitorComponent implements Runnable {
 						}
 					}
 					user32.SendMessage(nextViewer, uMsg, wParam, lParam);
-					break;
+					return new LRESULT(0);
 				case WM_DESTROY:
 					user32.ChangeClipboardChain(viewer, nextViewer);
-					// Fall through... not sure if that is required
-				default:
-					return user32.DefWindowProc(hWnd, uMsg, wParam, lParam);
+					break;
 				}
-				return new LRESULT(0);
+				return user32.DefWindowProc(hWnd, uMsg, wParam, lParam);
 			}
 		};
 		user32.SetWindowLong(viewer, User32.GWL_WNDPROC, callback);
 
-		HANDLE handles[] = { event };
+		MSG msg = new MSG();
+
+		final HANDLE handles[] = { event };
 		while (true) {
 			int result = User32.INSTANCE.MsgWaitForMultipleObjects(
 					handles.length, handles, false, Kernel32.INFINITE,

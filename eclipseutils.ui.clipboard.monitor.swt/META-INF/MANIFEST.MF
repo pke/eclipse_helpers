@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SWT Handling of Clipboard Monitor Events
+Bundle-SymbolicName: eclipseutils.ui.clipboard.monitor.swt
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Philipp Kursawe
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Import-Package: eclipseutils.swt.clipboard.monitor;version="1.0.0",
+ org.eclipse.swt.dnd,
+ org.eclipse.swt.widgets,
+ org.osgi.service.event;version="1.2.0"
