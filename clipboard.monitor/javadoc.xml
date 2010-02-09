@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="javadoc">
+    <target name="javadoc">
+        <javadoc access="public" author="true" classpath="../eclipseutils.swt.clipboard.target/com.sun.jna.win32/bin;C:\dev\java\eclipse.3.5\plugins\com.sun.jna_3.2.3.jar;C:\dev\java\eclipse.3.5\plugins\org.eclipse.osgi.services_3.2.100.v20100108.jar" destdir="doc" doctitle="Clipboard Monitor API" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="clipboard.monitor" source="1.5" sourcepath="src" splitindex="true" use="true" version="true"/>
+    </target>
+</project>

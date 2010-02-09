@@ -17,5 +17,4 @@ package eclipseutils.ui.copyto.api.json;
  * 
  */
 public interface Response {
-
 }

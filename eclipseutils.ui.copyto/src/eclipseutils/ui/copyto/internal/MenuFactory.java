@@ -23,11 +23,17 @@ import org.eclipse.ui.services.IServiceLocator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
+/**
+ * Creates the menus for copyto in the main/edit and in popup menus.
+ * 
+ * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
+ * 
+ */
 public class MenuFactory extends ExtensionContributionFactory {
 	private final static Bundle bundle = FrameworkUtil
 			.getBundle(MenuFactory.class);
-	public static final String MENU_URI = "menu:" + bundle.getSymbolicName()
-			+ ".menu";
+	public static final String MENU_URI = "menu:" + bundle.getSymbolicName() //$NON-NLS-1$
+			+ ".menu"; //$NON-NLS-1$
 
 	@Override
 	public void createContributionItems(final IServiceLocator locator,
@@ -35,11 +41,11 @@ public class MenuFactory extends ExtensionContributionFactory {
 		final IMenuService menuService = (IMenuService) locator
 				.getService(IMenuService.class);
 		URL iconEntry = FileLocator.find(bundle, new Path(
-				"$nl$/icons/e16/copyto.png"), null);
+				"$nl$/icons/e16/copyto.png"), null); //$NON-NLS-1$
 		ImageDescriptor icon = (iconEntry != null) ? ImageDescriptor
 				.createFromURL(iconEntry) : null;
 
-		final MenuManager menuManager = new MenuManager("Copy To", icon, null) { //$NON-NLS-2$
+		final MenuManager menuManager = new MenuManager("Copy To", icon, null) {
 			@Override
 			public void dispose() {
 				menuService.releaseContributions(this);

@@ -162,6 +162,8 @@ public class CopyToHandler extends AbstractHandler implements IStateListener,
 		final IWorkbenchWindow workbenchWindow = HandlerUtil
 				.getActiveWorkbenchWindowChecked(event);
 
+		final String itemText = getTriggerItemText(event.getTrigger());
+
 		final Results results[] = { null };
 
 		final Action runAction = new Action("Copy to clipboard") {
@@ -306,9 +308,8 @@ public class CopyToHandler extends AbstractHandler implements IStateListener,
 				// Returns a CommandStateProxy instead of the real LastIdState
 				// class, so we cannot use it directly here.
 				State lastIdState = event.getCommand().getState("lastId");
-				setState(event.getTrigger(), lastIdState, ParameterizedCommand
-						.generateCommand(event.getCommand(), event
-								.getParameters()));
+				setState(lastIdState, ParameterizedCommand.generateCommand(
+						event.getCommand(), event.getParameters()), itemText);
 
 				Display.getDefault().asyncExec(new Runnable() {
 					public void run() {
@@ -332,25 +333,30 @@ public class CopyToHandler extends AbstractHandler implements IStateListener,
 	}
 
 	/**
-	 * We need to query the label of the trigger item, and can do so only in the
-	 * SWT-Thread.
+	 * Must be called from the UI-Thread
 	 * 
+	 * @param trigger
+	 * @return
+	 */
+	private String getTriggerItemText(Object trigger) {
+		if (trigger instanceof Event) {
+			final Event triggerEvent = (Event) trigger;
+			if (triggerEvent.widget instanceof MenuItem) {
+				return ((MenuItem) triggerEvent.widget).getText();
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * @param trigger
 	 * @param state
 	 * @param id
 	 */
-	void setState(Object trigger, final State state,
-			final ParameterizedCommand command) {
-		if (trigger instanceof Event) {
-			final Event triggerEvent = (Event) trigger;
-			if (triggerEvent.widget instanceof MenuItem) {
-				triggerEvent.display.asyncExec(new Runnable() {
-					public void run() {
-						LastCommandState.setValue(state, command,
-								((MenuItem) triggerEvent.widget).getText());
-					}
-				});
-			}
+	private void setState(final State state,
+			final ParameterizedCommand command, String text) {
+		if (text != null) {
+			LastCommandState.setValue(state, command, text);
 		}
 	}
 
@@ -372,7 +378,7 @@ public class CopyToHandler extends AbstractHandler implements IStateListener,
 		return false;
 	}
 
-	public static Map<String, String> resolveParams(Copyable copyable,
+	private static Map<String, String> resolveParams(Copyable copyable,
 			final Map<String, String> params) {
 		final IStringVariableManager variableManager = VariablesPlugin
 				.getDefault().getStringVariableManager();
@@ -411,7 +417,7 @@ public class CopyToHandler extends AbstractHandler implements IStateListener,
 		// loadFavIcon(element, (String) parameters.get("url"));
 	}
 
-	public static void loadFavIcon(final UIElement element, String fullUrl) {
+	private static void loadFavIcon(final UIElement element, String fullUrl) {
 		try {
 			final URL url[] = { new URL(fullUrl) };
 			url[0] = new URL("http://" + url[0].getHost() + "/favicon.ico");

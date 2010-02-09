@@ -7,6 +7,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.databinding.viewers.CellEditorProperties;
 import org.eclipse.jface.databinding.viewers.ObservableValueEditingSupport;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TextCellEditor;
@@ -87,7 +88,7 @@ class TargetFieldEditor extends TableViewerFieldEditor<Target> {
 			}
 		});
 
-		Button pasteButton = createPushButton(parent, "Paste");
+		final Button pasteButton = createPushButton(parent, "Paste");
 		pasteButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -100,6 +101,10 @@ class TargetFieldEditor extends TableViewerFieldEditor<Target> {
 						add(item);
 					}
 				} catch (Exception ex) {
+					MessageDialog
+							.openError(pasteButton.getShell(),
+									"Error pasting CopyTo target",
+									"The clipboard does not contain a valid CopyTo target for pasting");
 					ex.printStackTrace();
 				} finally {
 					clipboard.dispose();

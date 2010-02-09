@@ -27,6 +27,12 @@ import eclipseutils.ui.copyto.api.ResponseHandler;
 import eclipseutils.ui.copyto.api.Result;
 import eclipseutils.ui.copyto.responses.RedirectResponseHandler;
 
+/**
+ * Copies the content of Copyable to a HTTP destination using POST.
+ * 
+ * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
+ * 
+ */
 public abstract class HttpCopyToHandler implements Handler {
 
 	public static final String symbolicName = FrameworkUtil.getBundle(

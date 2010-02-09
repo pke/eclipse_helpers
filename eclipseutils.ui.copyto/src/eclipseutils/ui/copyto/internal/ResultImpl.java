@@ -39,7 +39,7 @@ class ResultImpl implements Result {
 
 	public ResultImpl(final Copyable copyable, final Throwable throwable) {
 		this(copyable, null, new Status(IStatus.ERROR,
-				HttpCopyToHandler.symbolicName, "Failed to copy", throwable));
+				HttpCopyToHandler.symbolicName, "Failed to copy", throwable)); //$NON-NLS-1$
 	}
 
 	public String getTargetName() {

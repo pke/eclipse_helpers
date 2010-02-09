@@ -15,14 +15,23 @@ import java.lang.reflect.Method;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
+/**
+ * Helpers for common work done on editors.
+ * 
+ * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
+ * 
+ */
 public final class EditorHelper {
 
 	/**
 	 * Calls AbstractTextEditor.getSourceViewer() through reflection, as that
 	 * method is normally protected (for some ungodly reason).
 	 * 
-	 * @param AbstractTextEditor
+	 * @param editor
 	 *            to run reflection on
+	 * @return the ITextViewer interface for the source viewer or
+	 *         <code>null</code> if <i>editor</i> has no "getSourceViewer"
+	 *         method.
 	 */
 	public static ITextViewer getSourceViewer(final AbstractTextEditor editor) {
 		try {

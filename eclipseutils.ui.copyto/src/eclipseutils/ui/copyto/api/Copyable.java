@@ -24,6 +24,9 @@ public interface Copyable {
 	 */
 	String getText();
 
+	/**
+	 * @return the mime type. Must <em>never</em> return <code>null</code>;
+	 */
 	String getMimeType();
 
 	/**

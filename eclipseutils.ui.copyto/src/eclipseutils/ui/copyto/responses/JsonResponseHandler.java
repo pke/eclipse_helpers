@@ -57,7 +57,7 @@ public class JsonResponseHandler implements ResponseHandler {
 				}
 			}
 		}
-		throw new IOException("Response was not a proper JSON response");
+		throw new IOException("Response was not a proper JSON response"); //$NON-NLS-1$
 	}
 
 }

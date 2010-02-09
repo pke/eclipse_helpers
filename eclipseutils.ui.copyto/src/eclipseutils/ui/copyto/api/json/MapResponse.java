@@ -13,10 +13,14 @@ package eclipseutils.ui.copyto.api.json;
 import java.util.Map;
 
 /**
+ * Respresents a JSON response that is saved in a map.
  * 
  * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
  * 
  */
 public interface MapResponse extends Response {
+	/**
+	 * @return the representation of the JSON response as a map.
+	 */
 	Map<?, ?> getMap();
 }

@@ -15,8 +15,19 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.prefs.Preferences;
 
+/**
+ * Initializes the preferences for the copyto plugin.
+ * 
+ * <p>
+ * If there is only one copyto extension available, it also sets the last
+ * executed contribution to this only one.
+ * 
+ * @author <a href="mailto:phil.kursawe@gmail.com">Philipp Kursawe</a>
+ * 
+ */
 public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
+	@SuppressWarnings("nls")
 	@Override
 	public void initializeDefaultPreferences() {
 		final Preferences node = new InstanceScope().getNode(FrameworkUtil

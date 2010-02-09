@@ -35,7 +35,7 @@ public class RedirectResponseHandler implements ResponseHandler {
 			}
 			return new URL(value);
 		}
-		throw new IOException("Response did not contain a redirect location");
+		throw new IOException("Response did not contain a redirect location"); //$NON-NLS-1$
 	}
 
 }

@@ -37,20 +37,26 @@ public abstract class CustomExtensionParamControl implements
 
 	public void setInitializationData(IConfigurationElement config,
 			String propertyName, Object data) throws CoreException {
-		this.labelText = config.getAttribute("label");
+		this.labelText = config.getAttribute("label"); //$NON-NLS-1$
 		if (labelText == null) {
 			throw new CoreException(new Status(IStatus.ERROR, config
 					.getContributor().getName(), NLS.bind(
-					"No label specified for {}", config.getAttribute("name"))));
+					"No label specified for {}", config.getAttribute("name")))); //$NON-NLS-1$//$NON-NLS-2$
 		}
-		this.desc = config.getAttribute("description");
+		this.desc = config.getAttribute("description"); //$NON-NLS-1$
 	}
 
+	/**
+	 * @return the label text. Never null.
+	 */
 	public String getLabelText() {
 		return labelText;
 	}
 
+	/**
+	 * @return the description or an empty string.
+	 */
 	public String getDescription() {
-		return desc != null ? desc : ""; // $NLS-1
+		return desc != null ? desc : ""; //$NON-NLS-1$
 	}
 }
