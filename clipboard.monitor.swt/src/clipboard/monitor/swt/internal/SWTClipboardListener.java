@@ -34,7 +34,6 @@ import org.osgi.service.log.LogService;
 import clipboard.monitor.ClipboardEvent;
 import clipboard.monitor.ClipboardListener;
 
-
 /**
  * ClipboardListener implementation that queries the clipboard for the available
  * formats and publishes specialized events under the parent

@@ -19,7 +19,6 @@ import org.osgi.service.event.EventAdmin;
 import clipboard.monitor.ClipboardEvent;
 import clipboard.monitor.ClipboardListener;
 
-
 /**
  * ClipboardListener implementation that publishes an event with the
  * <code>eclipseutils/ui/clipboard/monitor/event</code> topic with the
