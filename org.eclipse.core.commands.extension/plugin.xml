@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="org.eclipse.core.commands.extender.internal.CommandsPropertyTester"
+            id="org.eclipse.core.expressions.testers.CommandsPropertyTester"
+            namespace="org.eclipse.core.commands"
+            properties="toggle"
+            type="org.eclipse.ui.services.IServiceLocator">
+      </propertyTester>
+   </extension>
+
+</plugin>
